@@ -1,0 +1,26 @@
+= Preparing your lab attendance
+
+== Software Requirements
+
+To build and run the lab exercise, you need at least JDK 7 and maven on your machine.
+
+- Java 8: http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
+- Maven 3.x: https://maven.apache.org/download.cgi
+
+
+== IDE
+
+An IDE as helpful, but we don't make any recommendations. Use the one you are familiar with.
+
+- JBoss developer studio: http://developers.redhat.com/products/devstudio/overview/
+- Netbeans: https://netbeans.org/
+- Intellij IDEA: https://www.jetbrains.com/idea/ 
+
+== Command line
+
+Many of the example descriptions refer to command line executions.
+Make sure you are familiar with how this work on the operating system of your choice.
+
+- Windows: https://www.lifewire.com/how-to-open-command-prompt-2618089
+- Mac OS: http://blog.teamtreehouse.com/introduction-to-the-mac-os-x-command-line
+- Linux: I don't need to tell you that, right?
