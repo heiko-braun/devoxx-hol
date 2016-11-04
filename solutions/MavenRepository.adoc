@@ -1,0 +1,7 @@
+= Custom Maven repository
+
+If you copied the maven repository from one of the USB sticks, that we passed around in the lab, you need to tell maven to pick up the files from there.
+
+The most simple way is to use the `settings.xml` in this directory, modify it to reflect the location of your local repository (the place where you unzipped the USB stick contents) and then copy `settings.xml` over to `{user.home}/.m2`
+
+ 
