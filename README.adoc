@@ -1,0 +1,193 @@
+= WildFly Swarm - Devoxx BE 2016 Hands on Lab
+
+The lab will take the user through some simple use cases for using WildFly Swarm.
+
+First step is to clone the repository containing the examples:
+
+[source,bash]
+----
+git clone https://github.com/heiko-braun/devoxx-hol.git
+----
+
+== Existing Java EE Application to Migrate
+
+==== JAXRS Example
+
+Open `javaee\pom.xml` in your favorite IDE to load the project.
+These projects were brought in "as is" from https://github.com/javaee-samples/javaee7-samples.
+
+NOTE: We only used a few examples to make the number of projects manageable in an IDE.
+
+In the IDE add the following plugin definition into the root `pom.xml`:
+
+[source,xml]
+----
+<plugin>
+  <groupId>org.wildfly.swarm</groupId>
+  <artifactId>wildfly-swarm-plugin</artifactId>
+  <version>2016.10.0</version>
+  <executions>
+    <execution>
+    <id>package</id>
+      <goals>
+        <goal>package</goal>
+      </goals>
+    </execution>
+  </executions>
+</plugin>
+----
+
+From a terminal/console navigate to the `/javaee/jaxrs` directory and run:
+
+[source,bash]
+----
+mvn wildfly-swarm:run
+----
+
+You will see WildFly Swarm start up and automatically detect which dependencies are needed based on the application code.
+
+When the server is started, open a browser to: http://localhost:8080/webresources/fruit
+
+You should see a JSON Array returned with no elements, such as `[ ]`.
+
+To add some elements into it we can go back to the terminal/console and run:
+
+[source,bash]
+----
+curl http://localhost:8080/webresources/fruit --data 'apple'
+curl http://localhost:8080/webresources/fruit --data 'pear'
+curl http://localhost:8080/webresources/fruit --data 'banana'
+----
+
+If you refresh the browser these entries we just added will be returned in the JSON Array.
+
+==== Stateless EJB Example
+
+Let's try another example, change directory to `/javaee/ejb-stateless` and run:
+
+[source,bash]
+----
+mvn wildfly-swarm:run
+----
+
+Once started open http://localhost:8080/TestServletWithInterface in the browser.
+You will see a message about amounts deposited and withdrawn from an account.
+
+==== Angular JS & JAX-RS Example
+
+Lastly, let's look at an example using AngularJS for the UI.
+Navigate to `/javaee/jaxrs-angular` and `mvn wildfly-swarm:run` it again.
+
+Open a browser to http://localhost:8080 and there will be a ToDo based application with a few entries pre loaded.
+
+We've just converted existing Java EE 7 applications to be used with WildFly Swarm by adding a single plugin definition!
+Pretty cool!
+
+What if we want to package an Uber jar?
+
+While still in `/javaee/jaxrs-angular` simply run:
+
+[source,bash]
+----
+mvn package
+----
+
+which runs the build and creates a `-swarm.jar` for the project that is the Uber jar.
+The Uber jar can then be run with:
+
+[source,bash]
+----
+java -jar target/jaxrs-angularjs-swarm.jar
+----
+
+Once started open a browser to http://localhost:8080 and the ToDo app will load.
+
+We've now seen two different ways that a WildFly Swarm application can be executed.
+
+== Customizing
+
+Now it's time to look at how we can customize our use of WildFly Swarm as opposed to just adding a plugin.
+
+Open `/custom/jaxrs/pom.xml` in your IDE to load the project we're going to modify.
+Currently the project only has the WildFly Swarm plugin present.
+
+To enable us to customize WildFly Swarm we need to add an explicit dependency:
+
+[source,xml]
+----
+<dependency>
+  <groupId>org.wildfly.swarm</groupId>
+  <artifactId>jaxrs</groupId>
+</dependency>
+----
+
+So we added the dependency but your IDE is likely complaining about a version not being set!
+
+To save us from setting a version directly on every WildFly Swarm dependency, we can import a bom:
+
+[source,xml]
+----
+<dependencyManagement>
+  <dependencies>
+    <dependency>
+      <groupId>org.wildfly.swarm</groupId>
+      <artifactId>bom</artifactId>
+      <version>2016.10.0</version>
+      <scope>import</scope>
+      <type>pom</type>
+    </dependency>
+  </dependencies>
+</dependencyManagement>
+----
+
+That's better, Maven and our IDE can now find the version of the WildFly Swarm dependency.
+
+Let's customize something!
+
+One of the cool, and overwhelming at times, features of WildFly Swarm is being able to programmatically
+do everything that can be defined within `standalone.xml`.
+So what exactly do we mean by that, well we've create a Java API that makes onto the operations that occur
+as if it's come from `standalone.xml`.
+
+For instance, let's create a custom main class that starts our application on a different port:
+
+[source,java]
+----
+public class Main { 
+  public static void main(String... args) throws Exception {
+    Swarm swarm = new Swarm()
+            .fraction(
+                    UndertowFraction
+                            .createDefaultFraction()
+                            .httpPort(9111)
+            );
+
+    swarm.start();
+
+    swarm.deploy();
+  }
+}
+----
+
+What we did was create a new instance of `Swarm`, the hook into configuring all things WildFly Swarm,
+and we modified the configuration of the `UndertowFraction` from what happens by default.
+If we didn't pass a new instance to `Swarm.fraction()` then a default would be provided by virtue of
+that Maven dependency being present in the build.
+
+To make it easier we statically create the fraction with `UndertowFraction.createDefaultFraction()`
+and then we customize it by setting the HTTP port to 9111.
+
+So we've reconfigured undertow, now we start WildFly Swarm with `swarm.start()`
+and deploy the default generated deployment of our application with `swarm.deploy()`.
+
+Now if we `mvn wildfly-swarm:run` our project it will be accessible at http://localhost:9111/webresources/fruit
+
+NOTE: As with the earlier use of this example by default the returned JSON Array is empty.
+It needs to be populated by POST calls before data is returned.
+
+== Conclusion
+
+In this short lab we've seen how easy it is to convert an existing Java EE application to be used with WildFly Swarm,
+and how we can customize the configuration of WildFly Swarm with a custom main() class.
+
+For further examples and documentation check out our link:http://wildfly-swarm.io[site].
