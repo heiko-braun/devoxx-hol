@@ -117,7 +117,7 @@ To enable us to customize WildFly Swarm we need to add an explicit dependency:
 ----
 <dependency>
   <groupId>org.wildfly.swarm</groupId>
-  <artifactId>jaxrs</groupId>
+  <artifactId>jaxrs</artifactId>
 </dependency>
 ----
 
